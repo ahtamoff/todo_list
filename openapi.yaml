@@ -1,0 +1,236 @@
+openapi: 3.0.3
+info:
+  title: Приложение todo list OpenApi спецификация
+  version: 0.0.1
+servers:
+  - url: http://localhost:8080/
+    description: Dev server
+paths:
+  /tasks:
+    get:
+      summary: Метод получения списка задач
+      tags:
+        - Tasks list
+      operationId: getAllTasks
+      responses:
+        '200':
+          description: Успешный ответ со списком задач
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tasks'
+        default:
+          description: Ошибка при выводе списка задач
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Метод создания задачи
+      tags:
+        - Task
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+      responses:
+        '200':
+          description: Успешный ответ с созданной задачей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        default:
+          description: Ошибка при выводе задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Метод удаления всех задач
+      tags:
+        - Tasks list
+      operationId: deleteAllTasks
+      responses:
+        '200':
+          description: Успешное удаление
+          content:
+            application/json: {}
+        default:
+          description: Ошибка при удалении всех задач
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tasks/{status}:
+    get:
+      summary: Метод получения задач по статусу
+      tags:
+        - Tasks list
+      operationId: getStatusTask
+      parameters:
+        - name: status
+          in: path
+          required: true
+          description: Статус задачи
+          schema:
+            type: string
+            enum:
+              - completed
+              - not completed
+          example: completed
+      responses:
+        '200':
+          description: Успешный ответ со списком задач с выбранным статусом
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tasks'
+        default:
+          description: Ошибка при выводе списка задач
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tasks/completed:
+     get:
+      summary: Получить все выполненные задачи за указанную дату
+      tags:
+        - Tasks list 
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: Дата, для которой нужно получить выполненные задачи
+          schema:
+            type: string
+            format: date
+            example: 21.05.2024
+      responses:
+        '200':
+          description: Успешный ответ с выполненными задачами
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+  /task/{task_id}:
+    get:
+      summary: Метод получения задачи по идентефикатору
+      tags:
+        - Task
+      operationId: getTaskById
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: Идентефикатор задачи
+          schema:
+            type: string
+          example: 1
+      responses:
+        '200':
+          description: Успешный ответ с конкретной задачей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        default:
+          description: Ошибка при выводе задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Изменение задачи по идентификатору
+      tags:
+        - Task
+      operationId: putTaskById
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: Идентификатор задачи
+          schema:
+            type: string
+          example: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+      responses:
+        '200':
+          description: Успешный ответ с конкретной задачей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        default:
+          description: Ошибка при выводе задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Метод удаления задачи по идентефикатору
+      tags:
+        - Task
+      operationId: deleteTaskById
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: Идентефикатор задачи
+          schema:
+            type: string
+          example: 1
+      responses:
+        '200':
+          description: Успешное удаление
+          content:
+            application/json: {}
+        default:
+          description: Ошибка при удалении задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        task_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: работа
+        info:
+          type: string
+          description: описание задачи
+          example: сделать тестовое от сбера
+        date:
+          description: дата, на которую назначена   задача
+        status:
+          type: string
+          enum:
+            - completed
+            - not completed
+    Tasks:
+      type: array
+      items:
+        $ref: '#/components/schemas/Task'
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
