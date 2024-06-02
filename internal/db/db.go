@@ -13,6 +13,7 @@ import (
 
 var DB *gorm.DB
 
+
 func InitDB() {
 
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
@@ -32,3 +33,4 @@ func InitDB() {
 
 	DB.AutoMigrate(&models.Task{})
 }
+

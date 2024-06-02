@@ -1,13 +1,13 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
+	"time"
 	"todo_list/internal/db"
 	"todo_list/internal/models"
-    // "time"
 	"github.com/gin-gonic/gin"
 )
-
 
 func CreateTask(c *gin.Context){
 	var newTask models.Task
@@ -17,7 +17,7 @@ func CreateTask(c *gin.Context){
         return
     }
 
-
+   
     if err := db.DB.Create(&newTask).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
@@ -25,6 +25,7 @@ func CreateTask(c *gin.Context){
 
     c.JSON(http.StatusOK, newTask)
 }
+
 
 func GetAllTasks(c *gin.Context){
     var TaskList []models.Task
@@ -38,7 +39,7 @@ func GetAllTasks(c *gin.Context){
 }
 
 
-func GetStatusTask(c *gin.Context) {
+func GetTaskByStatus(c *gin.Context) {
     status := c.Param("status")
     var TaskList []models.Task
     if err := db.DB.Where("status = ?", status).Find(&TaskList).Error; err != nil {
@@ -49,24 +50,27 @@ func GetStatusTask(c *gin.Context) {
 }
 
 
-// func GetCompletedTasksByDate(c *gin.Context) {
-//     dateStr := c.Query("date")
+func GetTasksByDateAndStatus(c *gin.Context) {
+    dateStr := c.Param("date")
+    status := c.Query("status")
+    log.Printf("%T", dateStr)
 
-//     date, err := time.Parse(time.RFC3339, dateStr)
-//     if err != nil {
-//         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
-//         return
-//     }
+    date, err := time.Parse("2006-01-02", dateStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
+        return
+    }
+    log.Println(date)
+    var tasks []models.Task
+    result := db.DB.Where("date = ? AND status = ?", date, status).Find(&tasks)
+    if result.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+        return
+    }
 
-//     var tasks []models.Task
-//     result := db.DB.Where("date = ? AND status = complited", date).Find(&tasks)
-//     if result.Error != nil {
-//         c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-//         return
-//     }
+    c.JSON(http.StatusOK, tasks)
+}
 
-//     c.JSON(http.StatusOK, tasks)
-// }
 
 func GetTaskById(c *gin.Context) {
     id := c.Param("task_id")
@@ -77,6 +81,7 @@ func GetTaskById(c *gin.Context) {
     }
     c.JSON(http.StatusOK, task)
 }
+
 
 func UpdateTaskById(c *gin.Context) {
     id := c.Param("task_id")
@@ -91,6 +96,10 @@ func UpdateTaskById(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
+    if task.Status != "completed" && task.Status != "not completed"{
+        c.JSON(http.StatusBadRequest, gin.H{"error": "status is completed / not completed only"})
+        return
+    }
     task.ID = temp
 
     if err := db.DB.Save(&task).Error; err != nil {
@@ -101,6 +110,7 @@ func UpdateTaskById(c *gin.Context) {
     c.JSON(http.StatusOK, task)
 }
 
+
 func DeleteTaskById(c *gin.Context) {
     id := c.Param("task_id")
     if err := db.DB.Delete(&models.Task{}, id).Error; err != nil {
@@ -110,6 +120,7 @@ func DeleteTaskById(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
 }
 
+
 func DeleteAllTasks(c *gin.Context) {
     if err := db.DB.Where("1 = 1").Unscoped().Delete(&models.Task{}).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -117,3 +128,5 @@ func DeleteAllTasks(c *gin.Context) {
     }
     c.JSON(http.StatusOK, gin.H{"message": "All tasks deleted successfully"})
 }
+
+
