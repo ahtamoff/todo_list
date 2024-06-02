@@ -7,3 +7,9 @@ up-app: ## Ждет готовности базы данных и запуска
 	@echo "Ожидание запуска базы данных..."
 	@sleep 10 # Задержка в 10 секунд для ожидания готовности базы данных
 	@docker-compose up --build swagger app
+
+test:
+	go test -v
+
+local:	
+	go run ./cmd/main.go
