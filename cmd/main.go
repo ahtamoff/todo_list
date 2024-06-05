@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	err := env.Load("../env")
+	err := env.Load()
 
 	if err != nil {
 		log.Fatal("Error loading .env file")
